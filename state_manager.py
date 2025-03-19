@@ -5,7 +5,7 @@ class StateManager:
     def __init__(self):
         self.config = load_config()
 
-        # Глобальные переменные
+        # Глобалки
         self.program_running = False
         self.is_running = False
         self.CACHE_DURATION = timedelta(hours=1)

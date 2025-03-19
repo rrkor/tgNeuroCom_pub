@@ -39,7 +39,6 @@ def initialize_accounts_table():
     except Exception as e:
         logger.error(f"Ошибка при создании таблицы Accounts: {e}")
 
-# Аватары
 def get_available_avatars():
     if not os.path.exists(AVATARS_FOLDER):
         logger.error(f"Папка с аватарками {AVATARS_FOLDER} не найдена.")
@@ -61,21 +60,20 @@ def get_random_avatar(account_name):
         with sqlite3.connect('cache/channels.db') as conn:
             cursor = conn.cursor()
 
-            # Получаем список уже использованных аватарок
-            cursor.execute('SELECT avatar_file FROM Accounts')
-            used_avatars = {row[0] for row in cursor.fetchall()}  # Создаем множество использованных аватарок
 
-            # Фильтруем доступные аватарки, исключая уже использованные
+            cursor.execute('SELECT avatar_file FROM Accounts')
+            used_avatars = {row[0] for row in cursor.fetchall()}
+
             available_avatars = [avatar for avatar in avatars if avatar not in used_avatars]
 
             if not available_avatars:
                 logger.error(f"Нет доступных аватарок для аккаунта {account_name}. Все аватарки уже используются.")
                 return None
 
-            # Выбираем случайную аватарку из доступных
+
             avatar_file = random.choice(available_avatars)
 
-            # Сохраняем выбранную аватарку в базу данных
+
             cursor.execute('INSERT OR IGNORE INTO Accounts (account_name, avatar_file) VALUES (?, ?)', (account_name, avatar_file))
             conn.commit()
 

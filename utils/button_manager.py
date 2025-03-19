@@ -14,12 +14,8 @@ def get_start_menu():
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 
 def get_main_menu(is_program_running=False):
-    """
-    Возвращает главное меню в зависимости от состояния программы.
-    :param is_program_running: True, если программа запущена, иначе False.
-    """
     if is_program_running:
-        # Меню, когда программа запущена
+
         keyboard = ReplyKeyboardMarkup(
             keyboard=[
                 [KeyboardButton(text="Остановка")],

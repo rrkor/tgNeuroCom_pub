@@ -31,22 +31,22 @@ async def connect_account(account, proxy_manager):
         logger.error(f"Нет доступного прокси для аккаунта {account_folder}.")
         return None
 
-    # Рандомная задержка перед подключением
+
     delay = random.randint(int(config['min_delay']), int(config['max_delay'])) // 4
     logger.info(f"Ожидание {delay} секунд перед подключением к аккаунту {account_folder}...")
     await asyncio.sleep(delay)
 
-    # Находим файл сессии в папке аккаунта
+
     session_files = [f for f in os.listdir(account_folder) if f.endswith('.session')]
     if not session_files:
         logger.error(f"Файл сессии не найден в папке {account_folder}.")
         return None
 
-    # Используем первый найденный session-файл
+
     session_name = os.path.join(account_folder, session_files[0])
     logger.info(f"Используем файл сессии: {session_name}")
 
-    # Создаем клиента с использованием session-файла
+
     client = TelegramClient(
         session=session_name,
         api_id=api_id,
@@ -55,7 +55,6 @@ async def connect_account(account, proxy_manager):
     )
 
     try:
-        # Подключаемся к аккаунту с таймаутом
         logger.info(f"Попытка подключения к аккаунту {account_folder}...")
         await asyncio.wait_for(client.connect(),
                                timeout=(random.randint(int(config['min_delay']), int(config['max_delay'])) // 4))
@@ -64,42 +63,41 @@ async def connect_account(account, proxy_manager):
             logger.error(f"Не удалось подключиться к аккаунту {account_folder}.")
             return None
 
-        # Проверяем, авторизован ли клиент
+
         if not await client.is_user_authorized():
             logger.error(f"Аккаунт {account_folder} не авторизован.")
             return None
 
-        # Проверка на 2FA
+
         try:
-            # Получаем информацию о текущем пользователе
+
             me = await client.get_me()
 
-            # Проверяем, требуется ли 2FA
+
             try:
                 password_info = await client(functions.account.GetPasswordRequest())
                 if password_info is None:
                     logger.info(f"2FA не требуется для аккаунта {account_folder}.")
                 else:
-                    # Извлекаем имя аккаунта из пути к папке
+
                     account_name = os.path.basename(account_folder)
                     logger.info(f"Имя аккаунта: {account_name}")
 
-                    # Загружаем текущие пароли 2FA
+
                     two_fa_passwords = load_two_fa_passwords()
 
-                    # Если пароль уже есть, используем его
+
                     if account_name in two_fa_passwords:
                         password = two_fa_passwords[account_name]
                         logger.info(f"Используем сохраненный пароль для 2FA аккаунта {account_name}.")
                     else:
-                        # Запрашиваем пароль у пользователя
+
                         password = input(f"Введите пароль для 2FA аккаунта {account_name}: ")
-                        # Сохраняем пароль в JSON
+
                         two_fa_passwords[account_name] = password
                         save_two_fa_passwords(two_fa_passwords)
                         logger.info(f"Пароль для аккаунта {account_name} успешно сохранен.")
 
-                    # Авторизуемся с использованием пароля
                     await client.sign_in(password=password)
                     logger.info(f"2FA пароль успешно введен для аккаунта {account_name}.")
             except SessionPasswordNeededError:
@@ -120,12 +118,6 @@ async def connect_account(account, proxy_manager):
 
 
 async def check_account_status(client):
-    """
-    Проверяет статус аккаунта (активен/заблокирован) и возвращает username.
-
-    :param client: Экземпляр TelegramClient.
-    :return: Кортеж (статус, username).
-    """
     try:
         if not await client.is_user_authorized():
             logger.warning(f"Аккаунт {client.session.filename} не авторизован.")
@@ -137,7 +129,7 @@ async def check_account_status(client):
             return True, me.username
         else:
             logger.warning(f"Аккаунт {client.session.filename} не имеет username.")
-            return True, None  # Аккаунт активен, но username отсутствует
+            return True, None
     except Exception as e:
         logger.error(f"Аккаунт {client.session.filename} заблокирован или неактивен: {e}")
         return False, None
